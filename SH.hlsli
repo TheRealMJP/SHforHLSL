@@ -8,6 +8,42 @@
 //
 //=================================================================================================
 
+//=================================================================================================
+//
+// This header is intended to be included directly from HLSL 2021+ code, or similar. It
+// implements types and utility functions for working with low-order spherical harmonics,
+// focused on use cases for graphics.
+//
+// Currently this library has support for L1 (2 bands, 4 coefficients) and
+// L2 (3 bands, 9 coefficients) SH. Depending on the author and material you're reading, you may
+// see L1 referred to as both first-order or second-order, and L2 referred to as second-order
+// or third-order. Ravi Ramamoorthi tends to refer to three bands as second-order, and
+// Peter-Pike Sloan tends to refer to three bands as third-order. This library always uses L1 and
+// L2 for clarity.
+//
+// The L1 and L2 core types can be templated on floating-point scalar and vector types, and are
+// intended to be used with float, float3, half, and half3. Currently the direction vectors
+// are passed as fp32, which results in conversions.
+//
+// Example #1: integrating and projecting radiance onto L2 SH
+//
+// SH::L2 radianceSH = SH::L2::Zero();
+// for(uint sampleIndex = 0; sampleIndex < NumSamples; ++sampleIndex)
+// {
+//     float2 u1u2 = RandomFloat2(sampleIndex, NumSamples);
+//     float3 sampleDirection = SampleDirectionSphere(u1u2);
+//     float3 sampleRadiance = CalculateIncomingRadiance(sampleDirection);
+//     radianceSH += SH::ProjectOntoL2(sampleDirection, sampleRadiance);
+// }
+// radianceSH *= 1.0f / (NumSamples * SampleDirectionSphere_PDF());
+//
+// Example #2: calculating diffuse lighting for a surface from radiance projected onto L2 SH
+//
+// SH::L2 radianceSH = FetchRadianceSH(surfacePosition);
+// float3 diffuseLighting = SH::CalculateIrradiance(radianceSH, surfaceNormal) * (diffuseAlbedo / Pi);
+//
+//=================================================================================================
+
 #ifndef SH_HLSLI_
 #define SH_HLSLI_
 
@@ -31,13 +67,45 @@ static const float BasisL2_M1 = sqrt(15) / (2 * SqrtPi);
 static const float BasisL2_M2 = sqrt(15) / (4 * SqrtPi);
 
 // L1 SH, 4 coeffients
-template<typename T> struct L1
+template<typename T = float> struct L1
 {
     T C[4];
 
     static L1<T> Zero()
     {
         return (L1<T>)0;
+    }
+
+    L1<T> operator+(L1<T> other)
+    {
+        L1<T> result;
+        for(uint i = 0; i < 4; ++i)
+            result.C[i] = C[i] + other.C[i];
+        return result;
+    }
+
+    L1<T> operator-(L1<T> other)
+    {
+        L1<T> result;
+        for(uint i = 0; i < 4; ++i)
+            result.C[i] = C[i] - other.C[i];
+        return result;
+    }
+
+    L1<T> operator*(T value)
+    {
+        L1<T> result;
+        for(uint i = 0; i < 4; ++i)
+            result.C[i] = C[i] * value;
+        return result;
+    }
+
+    L1<T> operator/(T value)
+    {
+        L1<T> result;
+        for(uint i = 0; i < 4; ++i)
+            result.C[i] = C[i] / value;
+        return result;
     }
 };
 
@@ -46,13 +114,45 @@ typedef L1<float3> L1_RGB;
 typedef L1<half3> L1_F16_RGB;
 
 // L2 SH, 9 coeffients
-template<typename T> struct L2
+template<typename T = float> struct L2
 {
     T C[9];
 
     static L2<T> Zero()
     {
         return (L2<T>)0;
+    }
+
+    L2<T> operator+(L2<T> other)
+    {
+        L2<T> result;
+        for(uint i = 0; i < 9; ++i)
+            result.C[i] = C[i] + other.C[i];
+        return result;
+    }
+
+    L2<T> operator-(L2<T> other)
+    {
+        L2<T> result;
+        for(uint i = 0; i < 9; ++i)
+            result.C[i] = C[i] - other.C[i];
+        return result;
+    }
+
+    L2<T> operator*(T value)
+    {
+        L2<T> result;
+        for(uint i = 0; i < 9; ++i)
+            result.C[i] = C[i] * value;
+        return result;
+    }
+
+    L2<T> operator/(T value)
+    {
+        L2<T> result;
+        for(uint i = 0; i < 9; ++i)
+            result.C[i] = C[i] / value;
+        return result;
     }
 };
 
@@ -67,6 +167,16 @@ template<typename T> L1<T> L2toL1(L2<T> sh)
     for(uint i = 0; i < 4; ++i)
         result.C[i] = sh.C[i];
     return result;
+}
+
+template<typename T, typename TLerp> L1<T> Lerp(L1<T> x, L1<T> y, TLerp s)
+{
+    return x * ((TLerp)1.0 - s) + y * s;
+}
+
+template<typename T, typename TLerp> L2<T> Lerp(L2<T> x, L2<T> y, TLerp s)
+{
+    return x * ((TLerp)1.0 - s) + y * s;
 }
 
 // Projects a value in a single direction onto a set of L1 SH coefficients
