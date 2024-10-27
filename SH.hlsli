@@ -403,7 +403,7 @@ template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<
     const vector<T, 3> zonalAxis = normalize(vector<T, 3>(dot(sh.C[3], lumCoefficients), dot(sh.C[1], lumCoefficients), dot(sh.C[2], lumCoefficients)));
 
     vector<T, N> ratio;
-    for(uint i = 0; i < N; ++i)
+    for(int i = 0; i < N; ++i)
         ratio[i] = abs(dot(vector<T, 3>(sh.C[3][i], sh.C[1][i], sh.C[2][i]), zonalAxis)) / sh.C[0][i];
 
     const vector<T, 3> zonalL2Coeff = sh.C[0] * (T(0.08) * ratio + T(0.6) * ratio * ratio);
@@ -437,9 +437,9 @@ template<typename T, int N> L1<T, N> Rotate(L1<T, N> sh, float3x3 rotation)
     result.C[0] = sh.C[0];
 
     // L1
-    result.C[1] = T(r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
-    result.C[2] = T(-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
-    result.C[3] = T(r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
+    result.C[1] = vector<T, N>(r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
+    result.C[2] = vector<T, N>(-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
+    result.C[3] = vector<T, N>(r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
 
     return result;
 }
@@ -465,9 +465,9 @@ template<typename T, int N> L2<T, N> Rotate(L2<T, N> sh, float3x3 rotation)
     result.C[0] = sh.C[0];
 
     // L1
-    result.C[1] = T(r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
-    result.C[2] = T(-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
-    result.C[3] = T(r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
+    result.C[1] = vector<T, N>(r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
+    result.C[2] = vector<T, N>(-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
+    result.C[3] = vector<T, N>(r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
 
     // L2
     const float t41 = r01 * r00;
@@ -522,9 +522,9 @@ template<typename T, int N> L2<T, N> Rotate(L2<T, N> sh, float3x3 rotation)
     for(uint i = 0; i < 5; ++i)
     {
         const uint base = i * 5;
-        result.C[4 + i] = T(r[base + 0] * sh.C[4] + r[base + 1] * sh.C[5] +
-                            r[base + 2] * sh.C[6] + r[base + 3] * sh.C[7] +
-                            r[base + 4] * sh.C[8]);
+        result.C[4 + i] = vector<T, N>(r[base + 0] * sh.C[4] + r[base + 1] * sh.C[5] +
+                                       r[base + 2] * sh.C[6] + r[base + 3] * sh.C[7] +
+                                       r[base + 4] * sh.C[8]);
     }
 
     return result;
