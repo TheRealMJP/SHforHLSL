@@ -22,8 +22,7 @@
 // L2 for clarity.
 //
 // The L1 and L2 core types can be templated on floating-point scalar and vector types, and are
-// intended to be used with float, float3, half, and half3. Currently the direction vectors
-// are passed as fp32, which results in conversions.
+// intended to be used with float, float3, half, and half3.
 //
 // Example #1: integrating and projecting radiance onto L2 SH
 //
