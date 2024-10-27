@@ -1,2 +1,2 @@
 # SHforHLSL
-SH for HLSL 2021
+Single-header SH support library for HLSL 2021. Still WIP!
