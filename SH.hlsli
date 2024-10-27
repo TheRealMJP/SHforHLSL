@@ -367,7 +367,28 @@ template<typename T, int N> vector<T, N> CalculateIrradianceGeomerics(L1< vector
     return result;
 }
 
-// Rotates a set of L1 coefficients by a rotation matrix
+template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1< vector<T, N> > sh, float3 normal)
+{
+    // From "ZH3: Quadratic Zonal Harmonics" - https://torust.me/ZH3.pdf
+
+    const vector<T, 3> lumCoefficients = vector<T, 3>(0.2126, 0.7152, 0.0722);
+    const vector<T, 3> zonalAxis = normalize(vector<T, 3>(dot(sh.C[3], lumCoefficients), dot(sh.C[1], lumCoefficients), dot(sh.C[2], lumCoefficients)));
+
+    vector<T, N> ratio;
+    for(uint i = 0; i < N; ++i)
+        ratio[i] = abs(dot(vector<T, 3>(sh.C[3][i], sh.C[1][i], sh.C[2][i]), zonalAxis)) / sh.C[0][i];
+
+    const vector<T, 3> zonalL2Coeff = sh.C[0] * (T(0.08) * ratio + T(0.6) * ratio * ratio);
+
+    const T fZ = dot(zonalAxis, normal);
+    const T zhDir = sqrt(T(5.0) / (T(16.0) * T(Pi))) * (T(3.0) * fZ * fZ - T(1.0));
+
+    const vector<T, N> baseIrradiance = CalculateIrradiance(sh, normal);
+
+    return baseIrradiance + (T(Pi * 0.25f) * zonalL2Coeff * zhDir);
+}
+
+// Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 template<typename T> L1<T> Rotate(L1<T> sh, float3x3 rotation)
 {
     const float r00 = rotation._m00;
@@ -395,7 +416,7 @@ template<typename T> L1<T> Rotate(L1<T> sh, float3x3 rotation)
     return result;
 }
 
-// Rotates a set of L2 coefficients by a rotation matrix
+// Rotates a set of L2 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 template<typename T> L2<T> Rotate(L2<T> sh, float3x3 rotation)
 {
     const float r00 = rotation._m00;
@@ -488,5 +509,7 @@ template<typename T> L2<T> Rotate(L2<T> sh, float3x3 rotation)
 // [0] Stupid SH Tricks by Peter-Pike Sloan - https://www.ppsloan.org/publications/StupidSH36.pdf
 // [1] Converting SH Radiance to Irradiance by Graham Hazel - https://grahamhazel.com/blog/2017/12/22/converting-sh-radiance-to-irradiance/
 // [2] An Efficient Representation for Irradiance Environment Maps by Ravi Ramamoorthi and Pat Hanrahan - https://cseweb.ucsd.edu/~ravir/6998/papers/envmap.pdf
+// [3] SHMath by Chuck Walbourn (originally written by Peter-Pike Sloan) - https://walbourn.github.io/spherical-harmonics-math/
+// [4] ZH3: Quadratic Zonal Harmonics by Thomas Roughton, Peter-Pike Sloan, Ari Silvennoinen, Michal Iwanicki, and Peter Shirley - https://torust.me/ZH3.pdf
 
 #endif // SH_HLSLI_
