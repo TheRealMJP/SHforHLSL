@@ -67,89 +67,113 @@ static const float BasisL2_M1 = sqrt(15) / (2 * SqrtPi);
 static const float BasisL2_M2 = sqrt(15) / (4 * SqrtPi);
 
 // L1 SH, 4 coeffients
-template<typename T = float> struct L1
+template<typename T = float, int N = 1> struct L1
 {
-    T C[4];
+    vector<T, N> C[4];
 
-    static L1<T> Zero()
+    static L1<T, N> Zero()
     {
-        return (L1<T>)0;
+        return (L1<T, N>)0;
     }
 
-    L1<T> operator+(L1<T> other)
+    L1<T, N> operator+(L1<T, N> other)
     {
-        L1<T> result;
+        L1<T, N> result;
         for(uint i = 0; i < 4; ++i)
             result.C[i] = C[i] + other.C[i];
         return result;
     }
 
-    L1<T> operator-(L1<T> other)
+    L1<T, N> operator-(L1<T, N> other)
     {
-        L1<T> result;
+        L1<T, N> result;
         for(uint i = 0; i < 4; ++i)
             result.C[i] = C[i] - other.C[i];
         return result;
     }
 
-    L1<T> operator*(T value)
+    L1<T, N> operator*(T value)
     {
-        L1<T> result;
+        L1<T, N> result;
         for(uint i = 0; i < 4; ++i)
             result.C[i] = C[i] * value;
         return result;
     }
 
-    L1<T> operator/(T value)
+    L1<T, N> operator*(vector<T, N> value)
     {
-        L1<T> result;
+        L1<T, N> result;
+        for(uint i = 0; i < 4; ++i)
+            result.C[i] = C[i] * value;
+        return result;
+    }
+
+    L1<T, N> operator/(T value)
+    {
+        L1<T, N> result;
+        for(uint i = 0; i < 4; ++i)
+            result.C[i] = C[i] / value;
+        return result;
+    }
+
+    L1<T, N> operator/(vector<T, N> value)
+    {
+        L1<T, N> result;
         for(uint i = 0; i < 4; ++i)
             result.C[i] = C[i] / value;
         return result;
     }
 };
 
-typedef L1<half> L1_F16;
-typedef L1<float3> L1_RGB;
-typedef L1<half3> L1_F16_RGB;
+typedef L1<half, 1> L1_F16;
+typedef L1<float, 3> L1_RGB;
+typedef L1<half, 3> L1_F16_RGB;
 
 // L2 SH, 9 coeffients
-template<typename T = float> struct L2
+template<typename T = float, int N = 1> struct L2
 {
-    T C[9];
+    vector<T, N> C[9];
 
-    static L2<T> Zero()
+    static L2<T, N> Zero()
     {
-        return (L2<T>)0;
+        return (L2<T, N>)0;
     }
 
-    L2<T> operator+(L2<T> other)
+    L2<T, N> operator+(L2<T, N> other)
     {
-        L2<T> result;
+        L2<T, N> result;
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] + other.C[i];
         return result;
     }
 
-    L2<T> operator-(L2<T> other)
+    L2<T, N> operator-(L2<T, N> other)
     {
-        L2<T> result;
+        L2<T, N> result;
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] - other.C[i];
         return result;
     }
 
-    L2<T> operator*(T value)
+    L2<T, N> operator*(T value)
     {
-        L2<T> result;
+        L2<T, N> result;
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] * value;
         return result;
     }
 
-    L2<T> operator/(T value)
+    L2<T, N> operator*(vector<T, N> value)
     {
-        L2<T> result;
+        L2<T, N> result;
+        for(uint i = 0; i < 9; ++i)
+            result.C[i] = C[i] * value;
+        return result;
+    }
+
+    L2<T, N> operator/(vector<T, N> value)
+    {
+        L2<T, N> result;
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] / value;
         return result;
@@ -161,67 +185,67 @@ typedef L2<float3> L2_RGB;
 typedef L2<half3> L2_F16_RGB;
 
 // Truncates a set of L2 coefficients to produce a set of L1 coefficients
-template<typename T> L1<T> L2toL1(L2<T> sh)
+template<typename T, int N> L1<T, N> L2toL1(L2<T, N> sh)
 {
-    L1<T> result;
+    L1<T, N> result;
     for(uint i = 0; i < 4; ++i)
         result.C[i] = sh.C[i];
     return result;
 }
 
-template<typename T, typename TLerp> L1<T> Lerp(L1<T> x, L1<T> y, TLerp s)
+template<typename T, int N> L1<T, N> Lerp(L1<T, N> x, L1<T, N> y, T s)
 {
-    return x * ((TLerp)1.0 - s) + y * s;
+    return x * (T(1.0) - s) + y * s;
 }
 
-template<typename T, typename TLerp> L2<T> Lerp(L2<T> x, L2<T> y, TLerp s)
+template<typename T, int N> L2<T, N> Lerp(L2<T, N> x, L2<T, N> y, T s)
 {
-    return x * ((TLerp)1.0 - s) + y * s;
+    return x * (T(1.0) - s) + y * s;
 }
 
 // Projects a value in a single direction onto a set of L1 SH coefficients
-template<typename T> L1<T> ProjectOntoL1(float3 direction, T value)
+template<typename T, int N> L1<T, N> ProjectOntoL1(vector<T, 3> direction, vector<T, N> value)
 {
-    L1<T> sh;
+    L1<T, N> sh;
 
     // L0
-    sh.C[0] = (T)(BasisL0 * value);
+    sh.C[0] = T(BasisL0) * value;
 
     // L1
-    sh.C[1] = (T)(BasisL1 * direction.y) * value;
-    sh.C[2] = (T)(BasisL1 * direction.z) * value;
-    sh.C[3] = (T)(BasisL1 * direction.x) * value;
+    sh.C[1] = T(BasisL1) * direction.y * value;
+    sh.C[2] = T(BasisL1) * direction.z * value;
+    sh.C[3] = T(BasisL1) * direction.x * value;
 
     return sh;
 }
 
 // Projects a value in a single direction onto a set of L2 SH coefficients
-template<typename T> L2<T> ProjectOntoL2(float3 direction, T value)
+template<typename T, int N> L2<T, N> ProjectOntoL2(vector<T, 3> direction, vector<T, N> value)
 {
-    L2<T> sh;
+    L2<T, N> sh;
 
     // L0
-    sh.C[0] = (T)(BasisL0 * value);
+    sh.C[0] = T(BasisL0) * value;
 
     // L1
-    sh.C[1] = (T)(BasisL1 * direction.y) * value;
-    sh.C[2] = (T)(BasisL1 * direction.z) * value;
-    sh.C[3] = (T)(BasisL1 * direction.x) * value;
+    sh.C[1] = T(BasisL1) * direction.y * value;
+    sh.C[2] = T(BasisL1) * direction.z * value;
+    sh.C[3] = T(BasisL1) * direction.x * value;
 
     // L2
-    sh.C[4] = (T)(BasisL2_MN2 * direction.x * direction.y) * value;
-    sh.C[5] = (T)(BasisL2_MN1 * direction.y * direction.z) * value;
-    sh.C[6] = (T)(BasisL2_M0 * (3.0f * direction.z * direction.z - 1.0f)) * value;
-    sh.C[7] = (T)(BasisL2_M1 * direction.x * direction.z) * value;
-    sh.C[8] = (T)(BasisL2_M2 * (direction.x * direction.x - direction.y * direction.y)) * value;
+    sh.C[4] = T(BasisL2_MN2) * direction.x * direction.y * value;
+    sh.C[5] = T(BasisL2_MN1) * direction.y * direction.z * value;
+    sh.C[6] = T(BasisL2_M0) * (T(3.0) * direction.z * direction.z - T(1.0)) * value;
+    sh.C[7] = T(BasisL2_M1) * direction.x * direction.z * value;
+    sh.C[8] = T(BasisL2_M2) * (direction.x * direction.x - direction.y * direction.y) * value;
 
     return sh;
 }
 
 // Calculates the dot product of two sets of L1 SH coefficients
-template<typename T> T DotProduct(L1<T> a, L1<T> b)
+template<typename T, int N> vector<T, N> DotProduct(L1<T, N> a, L1<T, N> b)
 {
-    T result = (T)0.0;
+    vector<T, N> result = T(0.0);
     for(uint i = 0; i < 4; ++i)
         result += a.C[i] * b.C[i];
 
@@ -229,9 +253,9 @@ template<typename T> T DotProduct(L1<T> a, L1<T> b)
 }
 
 // Calculates the dot product of two sets of L2 SH coefficients
-template<typename T> T DotProduct(L2<T> a, L2<T> b)
+template<typename T, int N> vector<T, N> DotProduct(L2<T, N> a, L2<T, N> b)
 {
-    T result = (T)0.0;
+    vector<T, N> result = T(0.0);
     for(uint i = 0; i < 9; ++i)
         result += a.C[i] * b.C[i];
 
@@ -240,22 +264,22 @@ template<typename T> T DotProduct(L2<T> a, L2<T> b)
 
 // Projects a delta in a direction onto SH and calculates the dot product with a set of L1 SH coefficients.
 // Can be used to "look up" a value from SH coefficients in a particular direction.
-template<typename T> T Evaluate(L1<T> sh, float3 direction)
+template<typename T, int N> vector<T, N> Evaluate(L1<T, N> sh, vector<T, 3> direction)
 {
-    L1<T> projectedDelta = ProjectOntoL1(direction, (T)1.0);
+    L1<T, N> projectedDelta = ProjectOntoL1(direction, (vector<T, N>)(1.0));
     return DotProduct(projectedDelta, sh);
 }
 
 // Projects a delta in a direction onto SH and calculates the dot product with a set of L2 SH coefficients.
 // Can be used to "look up" a value from SH coefficients in a particular direction.
-template<typename T> T Evaluate(L2<T> sh, float3 direction)
+template<typename T, int N> vector<T, N> Evaluate(L2<T, N> sh, vector<T, 3> direction)
 {
-    L2<T> projectedDelta = ProjectOntoL2(direction, (T)1.0);
+    L2<T, N> projectedDelta = ProjectOntoL2(direction, (vector<T, N>)(1.0));
     return DotProduct(projectedDelta, sh);
 }
 
 // Convolves a set of L1 SH coefficients with a set of L1 zonal harmonics
-template<typename T, int N> L1< vector<T, N> > ConvolveWithZH(L1< vector<T, N> > sh, vector<T, 2> zh)
+template<typename T, int N> L1<T, N> ConvolveWithZH(L1<T, N> sh, vector<T, 2> zh)
 {
     // L0
     sh.C[0] *= zh.x;
@@ -269,7 +293,7 @@ template<typename T, int N> L1< vector<T, N> > ConvolveWithZH(L1< vector<T, N> >
 }
 
 // Convolves a set of L2 SH coefficients with a set of L2 zonal harmonics
-template<typename T, int N> L2< vector<T, N> > ConvolveWithZH(L2< vector<T, N> > sh, vector<T, 3> zh)
+template<typename T, int N> L2<T, N> ConvolveWithZH(L2<T, N> sh, vector<T, 3> zh)
 {
     // L0
     sh.C[0] *= zh.x;
@@ -290,37 +314,37 @@ template<typename T, int N> L2< vector<T, N> > ConvolveWithZH(L2< vector<T, N> >
 }
 
 // Convolves a set of L1 SH coefficients with a cosine lobe. See [2]
-template<typename T, int N> L1< vector<T, N> > ConvolveWithCosineLobe(L1< vector< T, N> > sh)
+template<typename T, int N> L1<T, N> ConvolveWithCosineLobe(L1<T, N> sh)
 {
     return ConvolveWithZH(sh, vector<T, 2>(CosineA0, CosineA1));
 }
 
 // Convolves a set of L2 SH coefficients with a cosine lobe. See [2]
-template<typename T, int N> L2< vector<T, N> > ConvolveWithCosineLobe(L2< vector< T, N> > sh)
+template<typename T, int N> L2<T, N> ConvolveWithCosineLobe(L2<T, N> sh)
 {
     return ConvolveWithZH(sh, vector<T, 3>(CosineA0, CosineA1, CosineA2));
 }
 
 // Computes the "optimal linear direction" for a set of SH coefficients, AKA the "dominant" direction. See [0].
-template<typename T, int N> float3 OptimalLinearDirection(L1< vector<T, N> > sh)
+template<typename T, int N> vector<T, 3> OptimalLinearDirection(L1<T, N> sh)
 {
-    float x, y, z;
+    vector<T, 3> direction = T(0.0);
     for(int i = 0; i < N; ++i)
     {
-        x += sh.C[3][i];
-        y += sh.C[1][i];
-        z += sh.C[2][i];
+        direction.x += sh.C[3][i];
+        direction.y += sh.C[1][i];
+        direction.z += sh.C[2][i];
     }
-    return normalize(float3(x, y, z));
+    return normalize(direction);
 }
 
 // Computes the direction and color of a directional light that approximates a set of L1 SH coefficients. See [0].
-template<typename T> void ApproximateDirectionalLight(L1<T> sh, out float3 direction, out T color)
+template<typename T, int N> void ApproximateDirectionalLight(L1<T, N> sh, out vector<T, 3> direction, out T color)
 {
     direction = OptimalLinearDirection(sh);
-    L1<T> dirSH = ProjectOntoL1(direction, (T)1.0);
-    dirSH.C[0] = (T)0.0;
-    color = DotProduct(dirSH, sh) * (T)(867.0f / (316.0f * Pi));
+    L1<T, N> dirSH = ProjectOntoL1(direction, T(1.0));
+    dirSH.C[0] = T(0.0);
+    color = DotProduct(dirSH, sh) * T(867.0 / (316.0 * Pi));
 }
 
 // Calculates the irradiance from a set of SH coefficients containing projected radiance.
@@ -328,9 +352,9 @@ template<typename T> void ApproximateDirectionalLight(L1<T> sh, out float3 direc
 // Note that this does not scale the irradiance by 1 / Pi: if using this result for Lambertian diffuse,
 // you will want to include the divide-by-pi that's part of the Lambertian BRDF.
 // For example: float3 diffuse = CalculateIrradiance(sh, normal) * diffuseAlbedo / Pi;
-template<typename T> T CalculateIrradiance(L1<T> sh, float3 normal)
+template<typename T, int N> vector<T, N> CalculateIrradiance(L1<T, N> sh, vector<T, 3> normal)
 {
-    L1<T> convolved = ConvolveWithCosineLobe(sh);
+    L1<T, N> convolved = ConvolveWithCosineLobe(sh);
     return Evaluate(convolved, normal);
 }
 
@@ -339,39 +363,40 @@ template<typename T> T CalculateIrradiance(L1<T> sh, float3 normal)
 // Note that this does not scale the irradiance by 1 / Pi: if using this result for Lambertian diffuse,
 // you will want to include the divide-by-pi that's part of the Lambertian BRDF.
 // For example: float3 diffuse = CalculateIrradiance(sh, normal) * diffuseAlbedo / Pi;
-template<typename T> T CalculateIrradiance(L2<T> sh, float3 normal)
+template<typename T, int N> vector<T, N> CalculateIrradiance(L2<T, N> sh, vector<T, 3> normal)
 {
-    L2<T> convolved = ConvolveWithCosineLobe(sh);
+    L2<T, N> convolved = ConvolveWithCosineLobe(sh);
     return Evaluate(convolved, normal);
 }
 
-// Evaluates the irradiance from a set of L1 SH coeffecients using the non-linear fit from [1]
+// Calculates the irradiance from a set of L1 SH coeffecients using the non-linear fit from [1]
 // Note that this does not scale the irradiance by 1 / Pi: if using this result for Lambertian diffuse,
 // you will want to include the divide-by-pi that's part of the Lambertian BRDF.
 // For example: float3 diffuse = CalculateIrradianceGeomerics(sh, normal) * diffuseAlbedo / Pi;
-template<typename T, int N> vector<T, N> CalculateIrradianceGeomerics(L1< vector<T, N> > sh, float3 normal)
+template<typename T, int N> vector<T, N> CalculateIrradianceGeomerics(L1<T, N> sh, vector<T, 3> normal)
 {
     vector<T, N> result = T(0.0);
 
-    for(uint i = 0; i < N; ++i)
+    for(int i = 0; i < N; ++i)
     {
         T R0 = max(sh.C[0][i], T(0.00001));
 
         vector<T, 3> R1 = vector<T, 1>(0.5) * vector<T, 3>(sh.C[3][i], sh.C[1][i], sh.C[2][i]);
         T lenR1 = max(length(R1), T(0.00001));
 
-        T q = T(0.5) * (T(1.0) + dot(R1 / lenR1, vector<T, 3>(normal)));
+        T q = T(0.5) * (T(1.0) + dot(R1 / lenR1, normal));
 
         T p = T(1.0) + T(2.0) * lenR1 / R0;
         T a = (T(1.0) - lenR1 / R0) / (T(1.0) + lenR1 / R0);
 
-        result[i] = R0 * (a + (vector<T, 1>(1.0) - a) * (p + vector<T, 1>(1.0)) * pow(abs(q), p));
+        result[i] = R0 * (a + (T(1.0) - a) * (p + T(1.0)) * pow(abs(q), p));
     }
 
     return result;
 }
 
-template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1< vector<T, N> > sh, float3 normal)
+// Calculates the irradiance from a set of L1 SH coefficientions by 'hallucinating" L3 zonal harmonics
+template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<T, N> sh, vector<T, 3> normal)
 {
     // From "ZH3: Quadratic Zonal Harmonics" - https://torust.me/ZH3.pdf
 
@@ -384,7 +409,7 @@ template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<
 
     const vector<T, 3> zonalL2Coeff = sh.C[0] * (T(0.08) * ratio + T(0.6) * ratio * ratio);
 
-    const T fZ = dot(zonalAxis, vector<T, 3>(normal));
+    const T fZ = dot(zonalAxis, normal);
     const T zhDir = sqrt(T(5.0) / (T(16.0) * T(Pi))) * (T(3.0) * fZ * fZ - T(1.0));
 
     const vector<T, N> baseIrradiance = CalculateIrradiance(sh, normal);
@@ -393,7 +418,7 @@ template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<
 }
 
 // Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
-template<typename T> L1<T> Rotate(L1<T> sh, float3x3 rotation)
+template<typename T, int N> L1<T, N> Rotate(L1<T, N> sh, float3x3 rotation)
 {
     const float r00 = rotation._m00;
     const float r10 = rotation._m01;
@@ -407,7 +432,7 @@ template<typename T> L1<T> Rotate(L1<T> sh, float3x3 rotation)
     const float r12 = -rotation._m21;
     const float r22 = rotation._m22;
 
-    L1<T> result;
+    L1<T, N> result;
 
     // L0
     result.C[0] = sh.C[0];
@@ -421,7 +446,7 @@ template<typename T> L1<T> Rotate(L1<T> sh, float3x3 rotation)
 }
 
 // Rotates a set of L2 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
-template<typename T> L2<T> Rotate(L2<T> sh, float3x3 rotation)
+template<typename T, int N> L2<T, N> Rotate(L2<T, N> sh, float3x3 rotation)
 {
     const float r00 = rotation._m00;
     const float r10 = rotation._m01;
@@ -435,7 +460,7 @@ template<typename T> L2<T> Rotate(L2<T> sh, float3x3 rotation)
     const float r12 = -rotation._m21;
     const float r22 = rotation._m22;
 
-    L2<T> result;
+    L2<T, N> result;
 
     // L0
     result.C[0] = sh.C[0];
