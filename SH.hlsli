@@ -255,7 +255,7 @@ template<typename T> T Evaluate(L2<T> sh, float3 direction)
 }
 
 // Convolves a set of L1 SH coefficients with a set of L1 zonal harmonics
-template<typename T> L1<T> ConvolveWithZH(L1<T> sh, float2 zh)
+template<typename T, int N> L1< vector<T, N> > ConvolveWithZH(L1< vector<T, N> > sh, vector<T, 2> zh)
 {
     // L0
     sh.C[0] *= zh.x;
@@ -269,7 +269,7 @@ template<typename T> L1<T> ConvolveWithZH(L1<T> sh, float2 zh)
 }
 
 // Convolves a set of L2 SH coefficients with a set of L2 zonal harmonics
-template<typename T> L1<T> ConvolveWithZH(L1<T> sh, float3 zh)
+template<typename T, int N> L2< vector<T, N> > ConvolveWithZH(L2< vector<T, N> > sh, vector<T, 3> zh)
 {
     // L0
     sh.C[0] *= zh.x;
@@ -290,23 +290,27 @@ template<typename T> L1<T> ConvolveWithZH(L1<T> sh, float3 zh)
 }
 
 // Convolves a set of L1 SH coefficients with a cosine lobe. See [2]
-template<typename T> L1<T> ConvolveWithCosineLobe(L1<T> sh)
+template<typename T, int N> L1< vector<T, N> > ConvolveWithCosineLobe(L1< vector< T, N> > sh)
 {
-    return ConvolveWithZH(sh, float2(CosineA0, CosineA1));
+    return ConvolveWithZH(sh, vector<T, 2>(CosineA0, CosineA1));
 }
 
 // Convolves a set of L2 SH coefficients with a cosine lobe. See [2]
-template<typename T> L2<T> ConvolveWithCosineLobe(L2<T> sh)
+template<typename T, int N> L2< vector<T, N> > ConvolveWithCosineLobe(L2< vector< T, N> > sh)
 {
-    return ConvolveWithZH(sh, float3(CosineA0, CosineA1, CosineA2));
+    return ConvolveWithZH(sh, vector<T, 3>(CosineA0, CosineA1, CosineA2));
 }
 
 // Computes the "optimal linear direction" for a set of SH coefficients, AKA the "dominant" direction. See [0].
-template<typename T> float3 OptimalLinearDirection(L1<T> sh)
+template<typename T, int N> float3 OptimalLinearDirection(L1< vector<T, N> > sh)
 {
-    float x = sh.C[3].x;
-    float y = sh.C[1].x;
-    float z = sh.C[2].x;
+    float x, y, z;
+    for(int i = 0; i < N; ++i)
+    {
+        x += sh.C[3][i];
+        y += sh.C[1][i];
+        z += sh.C[2][i];
+    }
     return normalize(float3(x, y, z));
 }
 
@@ -347,19 +351,19 @@ template<typename T> T CalculateIrradiance(L2<T> sh, float3 normal)
 // For example: float3 diffuse = CalculateIrradianceGeomerics(sh, normal) * diffuseAlbedo / Pi;
 template<typename T, int N> vector<T, N> CalculateIrradianceGeomerics(L1< vector<T, N> > sh, float3 normal)
 {
-    vector<T, N> result = 0.0f;
+    vector<T, N> result = T(0.0);
 
     for(uint i = 0; i < N; ++i)
     {
-        vector<T, 1> R0 = max(sh.C[0][i], vector<T, 1>(0.00001));
+        T R0 = max(sh.C[0][i], T(0.00001));
 
         vector<T, 3> R1 = vector<T, 1>(0.5) * vector<T, 3>(sh.C[3][i], sh.C[1][i], sh.C[2][i]);
-        vector<T, 1> lenR1 = max(length(R1), vector<T, 1>(0.00001));
+        T lenR1 = max(length(R1), T(0.00001));
 
-        vector<T, 1> q = vector<T, 1>(0.5) * (vector<T, 1>(1.0) + dot(R1 / lenR1, normal));
+        T q = T(0.5) * (T(1.0) + dot(R1 / lenR1, vector<T, 3>(normal)));
 
-        vector<T, 1> p = vector<T, 1>(1.0) + vector<T, 1>(2.0) * lenR1 / R0;
-        vector<T, 1> a = (vector<T, 1>(1.0) - lenR1 / R0) / (vector<T, 1>(1.0) + lenR1 / R0);
+        T p = T(1.0) + T(2.0) * lenR1 / R0;
+        T a = (T(1.0) - lenR1 / R0) / (T(1.0) + lenR1 / R0);
 
         result[i] = R0 * (a + (vector<T, 1>(1.0) - a) * (p + vector<T, 1>(1.0)) * pow(abs(q), p));
     }
@@ -380,12 +384,12 @@ template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<
 
     const vector<T, 3> zonalL2Coeff = sh.C[0] * (T(0.08) * ratio + T(0.6) * ratio * ratio);
 
-    const T fZ = dot(zonalAxis, normal);
+    const T fZ = dot(zonalAxis, vector<T, 3>(normal));
     const T zhDir = sqrt(T(5.0) / (T(16.0) * T(Pi))) * (T(3.0) * fZ * fZ - T(1.0));
 
     const vector<T, N> baseIrradiance = CalculateIrradiance(sh, normal);
 
-    return baseIrradiance + (T(Pi * 0.25f) * zonalL2Coeff * zhDir);
+    return baseIrradiance + (T(Pi * 0.25) * zonalL2Coeff * zhDir);
 }
 
 // Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
