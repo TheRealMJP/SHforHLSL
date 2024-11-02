@@ -55,7 +55,7 @@ float3 diffuseLighting = SH::CalculateIrradiance(radianceSH, surfaceNormal) * (d
 
 ## Testing
 
-Currently there is just a simple compute shader intended for testing that all of the functions compile successfully for all valid template types. Running `CompileTest.bat` will invoke compilation. dxc.exe + dxcompiler.dll + dxil.dll can be dropped into the same directory as the batch file to use a specific version of the compiler.
+Currently there is just a simple compute shader (`CompileTest.hlsl`) intended for testing that all of the functions compile successfully for all valid template types. Running `CompileTest.bat` will invoke compilation. dxc.exe + dxcompiler.dll + dxil.dll can be dropped into the same directory as the batch file to use a specific version of the compiler.
 
 ## License
 
