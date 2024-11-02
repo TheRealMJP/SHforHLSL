@@ -218,6 +218,11 @@ template<typename T, int N> L1<T, N> ProjectOntoL1(vector<T, 3> direction, vecto
     return sh;
 }
 
+template<typename T> L1<T, 1> ProjectOntoL1(vector<T, 3> direction, T value)
+{
+    return ProjectOntoL1<T, 1>(direction, value);
+}
+
 // Projects a value in a single direction onto a set of L2 SH coefficients
 template<typename T, int N> L2<T, N> ProjectOntoL2(vector<T, 3> direction, vector<T, N> value)
 {
@@ -239,6 +244,11 @@ template<typename T, int N> L2<T, N> ProjectOntoL2(vector<T, 3> direction, vecto
     sh.C[8] = T(BasisL2_M2) * (direction.x * direction.x - direction.y * direction.y) * value;
 
     return sh;
+}
+
+template<typename T> L2<T, 1> ProjectOntoL2(vector<T, 3> direction, T value)
+{
+    return ProjectOntoL2<T, 1>(direction, value);
 }
 
 // Calculates the dot product of two sets of L1 SH coefficients
