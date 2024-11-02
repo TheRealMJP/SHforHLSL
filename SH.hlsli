@@ -91,27 +91,11 @@ template<typename T = float, int N = 1> struct L1
         return result;
     }
 
-    L1<T, N> operator*(T value)
-    {
-        L1<T, N> result;
-        for(uint i = 0; i < 4; ++i)
-            result.C[i] = C[i] * value;
-        return result;
-    }
-
     L1<T, N> operator*(vector<T, N> value)
     {
         L1<T, N> result;
         for(uint i = 0; i < 4; ++i)
             result.C[i] = C[i] * value;
-        return result;
-    }
-
-    L1<T, N> operator/(T value)
-    {
-        L1<T, N> result;
-        for(uint i = 0; i < 4; ++i)
-            result.C[i] = C[i] / value;
         return result;
     }
 
@@ -138,9 +122,11 @@ template<typename T = float, int N = 1> struct L2
         return (L2<T, N>)0;
     }
 
+    // Note: DXC has poor codegen if these are not unrolled
     L2<T, N> operator+(L2<T, N> other)
     {
         L2<T, N> result;
+        [unroll]
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] + other.C[i];
         return result;
@@ -149,22 +135,16 @@ template<typename T = float, int N = 1> struct L2
     L2<T, N> operator-(L2<T, N> other)
     {
         L2<T, N> result;
+        [unroll]
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] - other.C[i];
-        return result;
-    }
-
-    L2<T, N> operator*(T value)
-    {
-        L2<T, N> result;
-        for(uint i = 0; i < 9; ++i)
-            result.C[i] = C[i] * value;
         return result;
     }
 
     L2<T, N> operator*(vector<T, N> value)
     {
         L2<T, N> result;
+        [unroll]
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] * value;
         return result;
@@ -173,6 +153,7 @@ template<typename T = float, int N = 1> struct L2
     L2<T, N> operator/(vector<T, N> value)
     {
         L2<T, N> result;
+        [unroll]
         for(uint i = 0; i < 9; ++i)
             result.C[i] = C[i] / value;
         return result;
@@ -348,10 +329,10 @@ template<typename T, int N> vector<T, 3> OptimalLinearDirection(L1<T, N> sh)
 }
 
 // Computes the direction and color of a directional light that approximates a set of L1 SH coefficients. See [0].
-template<typename T, int N> void ApproximateDirectionalLight(L1<T, N> sh, out vector<T, 3> direction, out T color)
+template<typename T, int N> void ApproximateDirectionalLight(L1<T, N> sh, out vector<T, 3> direction, out vector<T, N> color)
 {
     direction = OptimalLinearDirection(sh);
-    L1<T, N> dirSH = ProjectOntoL1(direction, T(1.0));
+    L1<T, N> dirSH = ProjectOntoL1(direction, (vector<T, N>)(1.0));
     dirSH.C[0] = T(0.0);
     color = DotProduct(dirSH, sh) * T(867.0 / (316.0 * Pi));
 }
@@ -410,13 +391,13 @@ template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<
     // From "ZH3: Quadratic Zonal Harmonics" - https://torust.me/ZH3.pdf
 
     const vector<T, 3> lumCoefficients = vector<T, 3>(0.2126, 0.7152, 0.0722);
-    const vector<T, 3> zonalAxis = normalize(vector<T, 3>(dot(sh.C[3], lumCoefficients), dot(sh.C[1], lumCoefficients), dot(sh.C[2], lumCoefficients)));
+    const vector<T, 3> zonalAxis = normalize(vector<T, 3>(dot((vector<T, 3>)sh.C[3], lumCoefficients), dot((vector<T, 3>)sh.C[1], lumCoefficients), dot((vector<T, 3>)sh.C[2], lumCoefficients)));
 
     vector<T, N> ratio;
     for(int i = 0; i < N; ++i)
         ratio[i] = abs(dot(vector<T, 3>(sh.C[3][i], sh.C[1][i], sh.C[2][i]), zonalAxis)) / sh.C[0][i];
 
-    const vector<T, 3> zonalL2Coeff = sh.C[0] * (T(0.08) * ratio + T(0.6) * ratio * ratio);
+    const vector<T, N> zonalL2Coeff = sh.C[0] * (T(0.08) * ratio + T(0.6) * ratio * ratio);
 
     const T fZ = dot(zonalAxis, normal);
     const T zhDir = sqrt(T(5.0) / (T(16.0) * T(Pi))) * (T(3.0) * fZ * fZ - T(1.0));
