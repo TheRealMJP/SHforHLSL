@@ -43,6 +43,7 @@ template<typename T, int N> void TestBasics()
         v = SH::Evaluate(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::ConvolveWithZH(b, vector<T, 2>(1.0, 1.0));
         a = SH::ConvolveWithCosineLobe(a);
+        a = ConvolveWithGGX(b, T(0.5));
         v = SH::CalculateIrradiance(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::Rotate(a, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1));
     }
@@ -55,6 +56,7 @@ template<typename T, int N> void TestBasics()
         v = SH::Evaluate(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::ConvolveWithZH(b, vector<T, 3>(1.0, 1.0, 1.0));
         a = SH::ConvolveWithCosineLobe(a);
+        a = ConvolveWithGGX(b, T(0.5));
         v = SH::CalculateIrradiance(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::Rotate(a, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1));
     }
@@ -68,12 +70,16 @@ template<typename T, int N> void TestL1Specifics()
     SH::ApproximateDirectionalLight(sh, d, v);
     v = SH::CalculateIrradianceGeomerics(sh, vector<T, 3>(0.0, 1.0, 0.0));
     v = SH::CalculateIrradianceL1ZH3Hallucinate(sh, vector<T, 3>(0.0, 1.0, 0.0));
+    vector<T, 2> zh = SH::ApproximateGGXAsL1ZH(T(0.5));
+    T s = T(0.0);
+    SH::ExtractSpecularDirLight(sh, T(0.5), d, v, s);
 }
 
 template<typename T, int N> void TestL2Specifics()
 {
     SH::L2<T, N> sh = SH::L2<T, N>::Zero();
     SH::L1<T, N> l1 = SH::L2toL1(sh);
+    vector<T, 3> zh = SH::ApproximateGGXAsL2ZH(T(0.5));
 }
 
 [numthreads(1, 1, 1)]

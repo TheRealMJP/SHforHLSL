@@ -407,6 +407,46 @@ template<typename T, int N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<
     return baseIrradiance + (T(Pi * 0.25) * zonalL2Coeff * zhDir);
 }
 
+// Approximates a GGX lobe with a given roughness/alpha as L1 zonal harmonics, using a fitted curve
+template<typename T> vector<T, 2> ApproximateGGXAsL1ZH(T ggxAlpha)
+{
+    const T l1Scale = T(1.66711256633276) / (T(1.65715038133932) + ggxAlpha);
+    return vector<T, 2>(1.0, l1Scale);
+}
+
+// Approximates a GGX lobe with a given roughness/alpha as L2 zonal harmonics, using a fitted curve
+template<typename T> vector<T, 3> ApproximateGGXAsL2ZH(T ggxAlpha)
+{
+    const T l1Scale = T(1.66711256633276) / (T(1.65715038133932) + ggxAlpha);
+    const T l2Scale = T(1.56127990596116) / (T(0.96989757593282) + ggxAlpha) - T(0.599972342361123);
+    return vector<T, 3>(1.0, l1Scale, l2Scale);
+}
+
+// Convolves a set of L1 SH coefficients with a GGX lobe for a given roughness/alpha
+template<typename T, int N> L1<T, N> ConvolveWithGGX(L1<T, N> sh, T ggxAlpha)
+{
+    return ConvolveWithZH(sh, ApproximateGGXAsL1ZH(ggxAlpha));
+}
+
+// Convolves a set of L2 SH coefficients with a GGX lobe for a given roughness/alpha
+template<typename T, int N> L2<T, N> ConvolveWithGGX(L2<T, N> sh, T ggxAlpha)
+{
+    return ConvolveWithZH(sh, ApproximateGGXAsL2ZH(ggxAlpha));
+}
+
+// Given a set of L1 SH coefficients represnting incoming radiance, determines a directional light
+// direction, color, and modified roughness value that can be used to compute an approximate specular term. See [5]
+template<typename T, int N> void ExtractSpecularDirLight(L1<T, N> shRadiance, T sqrtRoughness, out vector<T, 3> lightDir, out vector<T, N> lightColor, out T modifiedSqrtRoughness)
+{
+    vector<T, 3> avgL1 = vector<T, 3>(dot(shRadiance.C[3] / shRadiance.C[0], 0.333f), dot(shRadiance.C[1] / shRadiance.C[0], 0.333f), dot(shRadiance.C[2] / shRadiance.C[0], 0.333f));
+    avgL1 *= T(0.5);
+    T avgL1len = length(avgL1);
+
+    lightDir = avgL1 / avgL1len;
+    lightColor = Evaluate(shRadiance, lightDir) * T(Pi);
+    modifiedSqrtRoughness = saturate(sqrtRoughness * T(1.0) / sqrt(avgL1len));
+}
+
 // Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 template<typename T, int N> L1<T, N> Rotate(L1<T, N> sh, float3x3 rotation)
 {
@@ -530,5 +570,6 @@ template<typename T, int N> L2<T, N> Rotate(L2<T, N> sh, float3x3 rotation)
 // [2] An Efficient Representation for Irradiance Environment Maps by Ravi Ramamoorthi and Pat Hanrahan - https://cseweb.ucsd.edu/~ravir/6998/papers/envmap.pdf
 // [3] SHMath by Chuck Walbourn (originally written by Peter-Pike Sloan) - https://walbourn.github.io/spherical-harmonics-math/
 // [4] ZH3: Quadratic Zonal Harmonics by Thomas Roughton, Peter-Pike Sloan, Ari Silvennoinen, Michal Iwanicki, and Peter Shirley - https://torust.me/ZH3.pdf
+// [5] Precomputed Global Illumination in Frostbite by Yuriy O'Donnell - https://www.ea.com/frostbite/news/precomputed-global-illumination-in-frostbite
 
 #endif // SH_HLSLI_
