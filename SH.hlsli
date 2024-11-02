@@ -179,9 +179,9 @@ template<typename T = float, int N = 1> struct L2
     }
 };
 
-typedef L2<half> L2_F16;
-typedef L2<float3> L2_RGB;
-typedef L2<half3> L2_F16_RGB;
+typedef L2<half, 1> L2_F16;
+typedef L2<float, 3> L2_RGB;
+typedef L2<half, 3> L2_F16_RGB;
 
 // Truncates a set of L2 coefficients to produce a set of L1 coefficients
 template<typename T, int N> L1<T, N> L2toL1(L2<T, N> sh)
