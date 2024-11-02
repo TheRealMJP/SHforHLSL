@@ -1,0 +1,1 @@
+dxc -enable-16bit-types -WX -HV 2021 /T cs_6_8 /E CompileTest CompileTest.hlsl
