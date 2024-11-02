@@ -1,5 +1,5 @@
 # SHforHLSL
-Single-header SH support library for HLSL 2021. It implements types and utility functions for working with low-order spherical harmonics, focused on use cases for graphics.
+Single-header spherical harmonics support library for HLSL 2021. It implements types and utility functions for working with low-order SH, focused on use cases for graphics.
 
 ## How to Use
 Just include the header directly from HLSL 2021+ code.
@@ -24,6 +24,10 @@ The core L1 and L2 structs support basic operator overloading for summing/subtra
 * CalculateIrradiance
 * CalculateIrradianceGeomerics
 * CalculateIrradianceL1ZH3Hallucinate
+* ApproximateGGXAsL1ZH
+* ApproximateGGXAsL2ZH
+* ConvolveWithGGX
+* ExtractSpecularDirLight
 * Rotate
 
 ## Examples
@@ -48,6 +52,10 @@ Example #2: calculating diffuse lighting for a surface from radiance projected o
 SH::L2 radianceSH = FetchRadianceSH(surfacePosition);
 float3 diffuseLighting = SH::CalculateIrradiance(radianceSH, surfaceNormal) * (diffuseAlbedo / Pi);
 ```
+
+## Testing
+
+Currently there is just a simple compute shader intended for testing that all of the functions compile successfully for all valid template types. Running `CompileTest.bat` will invoke compilation. dxc.exe + dxcompiler.dll + dxil.dll can be dropped into the same directory as the batch file to use a specific version of the compiler.
 
 ## License
 
