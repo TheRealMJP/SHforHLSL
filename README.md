@@ -7,9 +7,9 @@ Just include the header directly from HLSL 2021+ code.
 ## Features
 Currently this library has support for L1 (2 bands, 4 coefficients) and L2 (3 bands, 9 coefficients) SH. Depending on the author and material you're reading, you may see L1 referred to as both first-order or second-order, and L2 referred to as second-order or third-order. Ravi Ramamoorthi tends to refer to three bands as second-order, and Peter-Pike Sloan tends to refer to three bands as third-order. This library always uses L1 and L2 for clarity.
 
-The L1 and L2 core types can be templated on floating-point scalar and vector types, and are intended to be used with float, float3, half, and half3 (with `-enable-16bit-types` passed during compilation). When fp16 types are used, the helper functions take fp16 arguments to try to void implicit conversions where possible.
+The core `SH` type as well as the `L1` and `L2` aliases are templated on the primitive scalar type (`T`) as well as the number of vector components (`N`). They are intended to be used with 1 or 3 components paired with the `float` and `half` primitive types (with `-enable-16bit-types` passed during compilation). When fp16 types are used, the helper functions take fp16 arguments to try to avoid implicit conversions where possible.
 
-The core L1 and L2 structs support basic operator overloading for summing/subtracting two sets of SH coefficients as well as multiplying/dividing the set of SH coefficients by a value. The following utility functions are also available:
+The core `SH` type supports basic operator overloading for summing/subtracting two sets of SH coefficients as well as multiplying/dividing the set of SH coefficients by a value. The following utility functions are also available:
 
 * L2toL1
 * Lerp

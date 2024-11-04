@@ -21,8 +21,14 @@
 // Peter-Pike Sloan tends to refer to three bands as third-order. This library always uses L1 and
 // L2 for clarity.
 //
-// The L1 and L2 core types can be templated on floating-point scalar and vector types, and are
-// intended to be used with float, float3, half, and half3.
+// The core SH type as well as the L1 and L2 aliases are templated on the primitive scalar
+// type (T) as well as the number of vector components (N). They are intended to be used with
+// 1 or 3 components paired with the float and half primitive types (with
+// -enable-16bit-types passed during compilation). When fp16 types are used, the helper functions
+// take fp16 arguments to try to avoid implicit conversions where possible.
+//
+// The core SH type supports basic operator overloading for summing/subtracting two sets of SH
+// coefficients as well as multiplying/dividing the set of SH coefficients by a value.
 //
 // Example #1: integrating and projecting radiance onto L2 SH
 //
@@ -65,104 +71,64 @@ static const float BasisL2_M0 = sqrt(5) / (4 * SqrtPi);
 static const float BasisL2_M1 = sqrt(15) / (2 * SqrtPi);
 static const float BasisL2_M2 = sqrt(15) / (4 * SqrtPi);
 
-// L1 SH, 4 coeffients
-template<typename T = float, int N = 1> struct L1
+// Base templated type for SH coefficients
+template<typename T, int N, int L> struct SH
 {
-    vector<T, N> C[4];
+    static const int NumCoefficients = (L + 1) * (L + 1);
 
-    static L1<T, N> Zero()
+    vector<T, N> C[NumCoefficients];
+
+    static SH<T, N, L> Zero()
     {
-        return (L1<T, N>)0;
+        return (SH<T, N, L>)0;
     }
 
-    L1<T, N> operator+(L1<T, N> other)
+    SH<T, N, L> operator+(SH<T, N, L> other)
     {
-        L1<T, N> result;
-        for(uint i = 0; i < 4; ++i)
+        SH<T, N, L> result;
+        [unroll]
+        for(uint i = 0; i < NumCoefficients; ++i)
             result.C[i] = C[i] + other.C[i];
         return result;
     }
 
-    L1<T, N> operator-(L1<T, N> other)
+    SH<T, N, L> operator-(SH<T, N, L> other)
     {
-        L1<T, N> result;
-        for(uint i = 0; i < 4; ++i)
+        SH<T, N, L> result;
+        [unroll]
+        for(uint i = 0; i < NumCoefficients; ++i)
             result.C[i] = C[i] - other.C[i];
         return result;
     }
 
-    L1<T, N> operator*(vector<T, N> value)
+    SH<T, N, L> operator*(vector<T, N> value)
     {
-        L1<T, N> result;
-        for(uint i = 0; i < 4; ++i)
+        SH<T, N, L> result;
+        [unroll]
+        for(uint i = 0; i < NumCoefficients; ++i)
             result.C[i] = C[i] * value;
         return result;
     }
 
-    L1<T, N> operator/(vector<T, N> value)
+    SH<T, N, L> operator/(vector<T, N> value)
     {
-        L1<T, N> result;
-        for(uint i = 0; i < 4; ++i)
+        SH<T, N, L> result;
+        [unroll]
+        for(uint i = 0; i < NumCoefficients; ++i)
             result.C[i] = C[i] / value;
         return result;
     }
 };
 
-typedef L1<half, 1> L1_F16;
-typedef L1<float, 3> L1_RGB;
-typedef L1<half, 3> L1_F16_RGB;
+template<typename T, int N = 1> using L1 = SH<T, N, 1>;
+using L1_F16 = L1<half, 1>;
+using L1_RGB = L1<float, 3>;
+using L1_F16_RGB = L1<half, 3>;
 
-// L2 SH, 9 coeffients
-template<typename T = float, int N = 1> struct L2
-{
-    vector<T, N> C[9];
-
-    static L2<T, N> Zero()
-    {
-        return (L2<T, N>)0;
-    }
-
-    // Note: DXC has poor codegen if these are not unrolled
-    L2<T, N> operator+(L2<T, N> other)
-    {
-        L2<T, N> result;
-        [unroll]
-        for(uint i = 0; i < 9; ++i)
-            result.C[i] = C[i] + other.C[i];
-        return result;
-    }
-
-    L2<T, N> operator-(L2<T, N> other)
-    {
-        L2<T, N> result;
-        [unroll]
-        for(uint i = 0; i < 9; ++i)
-            result.C[i] = C[i] - other.C[i];
-        return result;
-    }
-
-    L2<T, N> operator*(vector<T, N> value)
-    {
-        L2<T, N> result;
-        [unroll]
-        for(uint i = 0; i < 9; ++i)
-            result.C[i] = C[i] * value;
-        return result;
-    }
-
-    L2<T, N> operator/(vector<T, N> value)
-    {
-        L2<T, N> result;
-        [unroll]
-        for(uint i = 0; i < 9; ++i)
-            result.C[i] = C[i] / value;
-        return result;
-    }
-};
-
-typedef L2<half, 1> L2_F16;
-typedef L2<float, 3> L2_RGB;
-typedef L2<half, 3> L2_F16_RGB;
+template<typename T, int N = 1> using L2 = SH<T, N, 2>;
+using L2_F16 = L2<half, 1>;
+using L2_RGB = L2<float, 3>;
+using L2_F16_RGB = L2<half, 3>;
 
 // Truncates a set of L2 coefficients to produce a set of L1 coefficients
 template<typename T, int N> L1<T, N> L2toL1(L2<T, N> sh)
