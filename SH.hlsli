@@ -130,6 +130,23 @@ using L2_F16 = L2<float16_t, 1>;
 using L2_RGB = L2<float32_t, 3>;
 using L2_F16_RGB = L2<float16_t, 3>;
 
+// Converts from scalar to RGB SH coefficients
+template<typename T> L1<T, 3> ToRGB(L1<T, 1> sh)
+{
+    L1<T, 3> result;
+    for(uint i = 0; i < L1<T, 1>::NumCoefficients; ++i)
+        result.C[i] = sh.C[i];
+    return result;
+}
+
+template<typename T> L2<T, 3> ToRGB(L2<T, 1> sh)
+{
+    L2<T, 3> result;
+    for(uint i = 0; i < L2<T, 1>::NumCoefficients; ++i)
+        result.C[i] = sh.C[i];
+    return result;
+}
+
 // Truncates a set of L2 coefficients to produce a set of L1 coefficients
 template<typename T, int32_t N> L1<T, N> L2toL1(L2<T, N> sh)
 {

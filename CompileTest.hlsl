@@ -46,6 +46,7 @@ template<typename T, int N> void TestBasics()
         a = ConvolveWithGGX(b, T(0.5));
         v = SH::CalculateIrradiance(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::Rotate(a, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1));
+        SH::L1<T, 3> rgb = SH::ToRGB(SH::L1<T, 1>::Zero());
     }
 
     {
@@ -59,6 +60,7 @@ template<typename T, int N> void TestBasics()
         a = ConvolveWithGGX(b, T(0.5));
         v = SH::CalculateIrradiance(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::Rotate(a, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1));
+        SH::L2<T, 3> rgb = SH::ToRGB(SH::L2<T, 1>::Zero());
     }
 }
 
