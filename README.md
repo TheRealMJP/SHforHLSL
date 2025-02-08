@@ -35,7 +35,7 @@ The core `SH` type supports basic operator overloading for summing/subtracting t
 Example #1: integrating and projecting radiance onto L2 SH
 
 ```cpp
-SH::L2 radianceSH = SH::L2::Zero();
+SH::L2_RGB radianceSH = SH::L2_RGB::Zero();
 for(uint sampleIndex = 0; sampleIndex < NumSamples; ++sampleIndex)
 {
     float2 u1u2 = RandomFloat2(sampleIndex, NumSamples);
@@ -49,7 +49,7 @@ radianceSH *= 1.0f / (NumSamples * SampleDirectionSphere_PDF());
 Example #2: calculating diffuse lighting for a surface from radiance projected onto L2 SH
 
 ```cpp
-SH::L2 radianceSH = FetchRadianceSH(surfacePosition);
+SH::L2_RGB radianceSH = FetchRadianceSH(surfacePosition);
 float3 diffuseLighting = SH::CalculateIrradiance(radianceSH, surfaceNormal) * (diffuseAlbedo / Pi);
 ```
 

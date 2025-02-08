@@ -32,7 +32,7 @@
 //
 // Example #1: integrating and projecting radiance onto L2 SH
 //
-// SH::L2 radianceSH = SH::L2::Zero();
+// SH::L2_RGB radianceSH = SH::L2_RGB::Zero();
 // for(int32_t sampleIndex = 0; sampleIndex < NumSamples; ++sampleIndex)
 // {
 //     float2 u1u2 = RandomFloat2(sampleIndex, NumSamples);
@@ -44,7 +44,7 @@
 //
 // Example #2: calculating diffuse lighting for a surface from radiance projected onto L2 SH
 //
-// SH::L2 radianceSH = FetchRadianceSH(surfacePosition);
+// SH::L2_RGB radianceSH = FetchRadianceSH(surfacePosition);
 // float3 diffuseLighting = SH::CalculateIrradiance(radianceSH, surfaceNormal) * (diffuseAlbedo / Pi);
 //
 //=================================================================================================
