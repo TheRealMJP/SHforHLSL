@@ -368,11 +368,9 @@ template<typename T, int32_t N> vector<T, N> CalculateIrradianceGeomerics(L1<T, 
     return result;
 }
 
-// Calculates the irradiance from a set of L1 SH coefficientions by 'hallucinating" L3 zonal harmonics
+// Calculates the irradiance from a set of L1 SH coefficientions by 'hallucinating" L3 zonal harmonics. See [4].
 template<typename T, int32_t N> vector<T, N> CalculateIrradianceL1ZH3Hallucinate(L1<T, N> sh, vector<T, 3> normal)
 {
-    // From "ZH3: Quadratic Zonal Harmonics" - https://torust.me/ZH3.pdf
-
     const vector<T, 3> lumCoefficients = vector<T, 3>(0.2126, 0.7152, 0.0722);
     const vector<T, 3> zonalAxis = normalize(vector<T, 3>(dot((vector<T, 3>)sh.C[3], lumCoefficients), dot((vector<T, 3>)sh.C[1], lumCoefficients), dot((vector<T, 3>)sh.C[2], lumCoefficients)));
 
