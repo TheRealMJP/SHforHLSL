@@ -1,0 +1,158 @@
+//=================================================================================================
+//
+//  SHforHLSL - Spherical harmonics suppport library for HLSL 2021, by MJP
+//  https://github.com/TheRealMJP/SHforHLSL
+//  https://therealmjp.github.io/
+//
+//  All code licensed under the MIT license
+//
+//================================================================================================
+
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "SH_Lite.glsl"
+
+void TestOperatorOverloads()
+{
+    {
+        SH_L1 sh = SH_L1_Zero();
+        sh = SH_Add(sh, SH_L1_Zero());
+        sh = SH_Subtract(sh, SH_L1_Zero());
+        sh = SH_Multiply(sh, 1.0);
+        sh = SH_Divide(sh, 1.0);
+    }
+
+    {
+        SH_L1_RGB sh = SH_L1_RGB_Zero();
+        sh = SH_Add(sh, SH_L1_RGB_Zero());
+        sh = SH_Subtract(sh, SH_L1_RGB_Zero());
+        sh = SH_Multiply(sh, 1.0.xxx);
+        sh = SH_Divide(sh, 1.0.xxx);
+    }
+
+    {
+        SH_L2 sh = SH_L2_Zero();
+        sh = SH_Add(sh, SH_L2_Zero());
+        sh = SH_Subtract(sh, SH_L2_Zero());
+        sh = SH_Multiply(sh, 1.0);
+        sh = SH_Divide(sh, 1.0);
+    }
+
+    {
+        SH_L2_RGB sh = SH_L2_RGB_Zero();
+        sh = SH_Add(sh, SH_L2_RGB_Zero());
+        sh = SH_Subtract(sh, SH_L2_RGB_Zero());
+        sh = SH_Multiply(sh, 1.0.xxx);
+        sh = SH_Divide(sh, 1.0.xxx);
+    }
+}
+
+void TestBasics()
+{
+    {
+        SH_L1 a = SH_L1_Zero();
+        SH_L1 b = SH_L1_Zero();
+        a = SH_Mix(a, b, 0.5);
+        float v = SH_DotProduct(a, b);
+        v = SH_Evaluate(a, vec3(0.0, 1.0, 0.0));
+        a = SH_ConvolveWithZH(b, vec2(1.0, 1.0));
+        a = SH_ConvolveWithCosineLobe(a);
+        a = SH_ConvolveWithGGX(b, 0.5);
+        v = SH_CalculateIrradiance(a, vec3(0.0, 1.0, 0.0));
+        a = SH_Rotate(a, mat3(1, 0, 0, 0, 1, 0, 0, 0, 1));
+        SH_L1_RGB rgb = SH_ToRGB(SH_L1_Zero());
+    }
+
+    {
+        SH_L1_RGB a = SH_L1_RGB_Zero();
+        SH_L1_RGB b = SH_L1_RGB_Zero();
+        a = SH_Mix(a, b, 0.5);
+        vec3 v = SH_DotProduct(a, b);
+        v = SH_Evaluate(a, vec3(0.0, 1.0, 0.0));
+        a = SH_ConvolveWithZH(b, vec2(1.0, 1.0));
+        a = SH_ConvolveWithCosineLobe(a);
+        a = SH_ConvolveWithGGX(b, 0.5);
+        v = SH_CalculateIrradiance(a, vec3(0.0, 1.0, 0.0));
+        a = SH_Rotate(a, mat3(1, 0, 0, 0, 1, 0, 0, 0, 1));
+    }
+
+    {
+        SH_L2 a = SH_L2_Zero();
+        SH_L2 b = SH_L2_Zero();
+        a = SH_Mix(a, b, 0.5);
+        float v = SH_DotProduct(a, b);
+        v = SH_Evaluate(a, vec3(0.0, 1.0, 0.0));
+        a = SH_ConvolveWithZH(b, vec3(1.0, 1.0, 1.0));
+        a = SH_ConvolveWithCosineLobe(a);
+        a = SH_ConvolveWithGGX(b, 0.5);
+        v = SH_CalculateIrradiance(a, vec3(0.0, 1.0, 0.0));
+        a = SH_Rotate(a, mat3(1, 0, 0, 0, 1, 0, 0, 0, 1));
+        SH_L2_RGB rgb = SH_ToRGB(SH_L2_Zero());
+    }
+
+    {
+        SH_L2_RGB a = SH_L2_RGB_Zero();
+        SH_L2_RGB b = SH_L2_RGB_Zero();
+        a = SH_Mix(a, b, 0.5);
+        vec3 v = SH_DotProduct(a, b);
+        v = SH_Evaluate(a, vec3(0.0, 1.0, 0.0));
+        a = SH_ConvolveWithZH(b, vec3(1.0, 1.0, 1.0));
+        a = SH_ConvolveWithCosineLobe(a);
+        a = SH_ConvolveWithGGX(b, 0.5);
+        v = SH_CalculateIrradiance(a, vec3(0.0, 1.0, 0.0));
+        a = SH_Rotate(a, mat3(1, 0, 0, 0, 1, 0, 0, 0, 1));
+    }
+}
+
+void TestL1Specifics()
+{
+    {
+        SH_L1 sh = SH_ProjectOntoL1(vec3(0.0, 1.0, 0.0), 1.0);
+        vec3 d = SH_OptimalLinearDirection(sh);
+        float v = 0.0;
+        SH_ApproximateDirectionalLight(sh, d, v);
+        v = SH_CalculateIrradianceGeomerics(sh, vec3(0.0, 1.0, 0.0));
+        v = SH_CalculateIrradianceL1ZH3Hallucinate(sh, vec3(0.0, 1.0, 0.0));
+        vec2 zh = SH_ApproximateGGXAsL1ZH(0.5);
+        float s = 0.0;
+        SH_ExtractSpecularDirLight(sh, 0.5, d, v, s);
+    }
+
+    {
+        SH_L1_RGB sh = SH_ProjectOntoL1_RGB(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0));
+        vec3 d = SH_OptimalLinearDirection(sh);
+        vec3 v = 0.0.xxx;
+        SH_ApproximateDirectionalLight(sh, d, v);
+        v = SH_CalculateIrradianceGeomerics(sh, vec3(0.0, 1.0, 0.0));
+        v = SH_CalculateIrradianceL1ZH3Hallucinate(sh, vec3(0.0, 1.0, 0.0));
+        float s = 0.0;
+        SH_ExtractSpecularDirLight(sh, 0.5, d, v, s);
+    }
+}
+
+void TestL2Specifics()
+{
+    {
+        SH_L2 sh = SH_ProjectOntoL2(vec3(0.0, 1.0, 0.0), 1.0);
+        SH_L1 l1 = SH_L2toL1(sh);
+        vec3 zh = SH_ApproximateGGXAsL2ZH(0.5);
+    }
+
+    {
+        SH_L2_RGB sh = SH_ProjectOntoL2_RGB(vec3(0.0, 1.0, 0.0), 1.0.xxx);
+        SH_L1_RGB l1 = SH_L2toL1(sh);
+    }
+}
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+void main(void)
+{
+    TestOperatorOverloads();
+
+    TestBasics();
+
+    TestL1Specifics();
+
+    TestL2Specifics();
+}

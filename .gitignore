@@ -3,3 +3,7 @@ dxcompiler.dll
 dxil.dll
 fxc.exe
 d3dcompiler_47.dll
+*.spv
+*.swp
+*.swo
+*.swn
