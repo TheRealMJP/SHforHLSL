@@ -1,6 +1,6 @@
 //=================================================================================================
 //
-//  SHforHLSL - Spherical harmonics suppport library for HLSL 2021, by MJP
+//  SHforHLSL - Spherical harmonics suppport library for HLSL, by MJP
 //  https://github.com/TheRealMJP/SHforHLSL
 //  https://therealmjp.github.io/
 //
