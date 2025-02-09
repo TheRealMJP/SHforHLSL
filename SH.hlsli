@@ -425,7 +425,7 @@ template<typename T, int32_t N> void ExtractSpecularDirLight(L1<T, N> shRadiance
 
     lightDir = avgL1 / avgL1len;
     lightColor = Evaluate(shRadiance, lightDir) * T(Pi);
-    modifiedSqrtRoughness = saturate(sqrtRoughness * T(1.0) / sqrt(avgL1len));
+    modifiedSqrtRoughness = saturate(sqrtRoughness / sqrt(avgL1len));
 }
 
 // Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
