@@ -79,7 +79,7 @@ template<typename T, int N> void TestL1Specifics()
 
 template<typename T, int N> void TestL2Specifics()
 {
-    SH::L2<T, N> sh = SH::L2<T, N>::Zero();
+    SH::L2<T, N> sh = SH::ProjectOntoL2(vector<T, 3>(0.0, 1.0, 0.0), (vector<T, N>)(1.0));
     SH::L1<T, N> l1 = SH::L2toL1(sh);
     vector<T, 3> zh = SH::ApproximateGGXAsL2ZH(T(0.5));
 }
