@@ -360,7 +360,7 @@ L2 ProjectOntoL2(float3 direction, float value)
     return sh;
 }
 
-L2_RGB ProjectOntoL2_RGB(float3 direction, float value)
+L2_RGB ProjectOntoL2_RGB(float3 direction, float3 value)
 {
     L2_RGB sh;
 
