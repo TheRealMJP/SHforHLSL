@@ -739,54 +739,39 @@ void ExtractSpecularDirLight(L1_RGB shRadiance, float sqrtRoughness, out float3 
 // Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 L1 Rotate(L1 sh, float3x3 rotation)
 {
-    const float r00 = rotation._m00;
-    const float r10 = rotation._m01;
-    const float r20 = -rotation._m02;
-
-    const float r01 = rotation._m10;
-    const float r11 = rotation._m11;
-    const float r21 = -rotation._m12;
-
-    const float r02 = -rotation._m20;
-    const float r12 = -rotation._m21;
-    const float r22 = rotation._m22;
-
     L1 result;
 
     // L0
     result.C[0] = sh.C[0];
 
     // L1
-    result.C[1] = (r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
-    result.C[2] = (-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
-    result.C[3] = (r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
+    float3 dir = float3(sh.C[3], sh.C[1], sh.C[2]);
+    dir = mul(dir, rotation);
+    result.C[3] = dir.x;
+    result.C[1] = dir.y;
+    result.C[2] = dir.z;
 
     return result;
 }
 
 L1_RGB Rotate(L1_RGB sh, float3x3 rotation)
 {
-    const float r00 = rotation._m00;
-    const float r10 = rotation._m01;
-    const float r20 = -rotation._m02;
-
-    const float r01 = rotation._m10;
-    const float r11 = rotation._m11;
-    const float r21 = -rotation._m12;
-
-    const float r02 = -rotation._m20;
-    const float r12 = -rotation._m21;
-    const float r22 = rotation._m22;
-
     L1_RGB result;
 
     // L0
     result.C[0] = sh.C[0];
 
     // L1
-    result.C[1] = (r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
-    result.C[2] = (-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
-    result.C[3] = (r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
+    [unroll]
+    for(uint i = 0; i < 3; ++i)
+    {
+        float3 dir = float3(sh.C[3][i], sh.C[1][i], sh.C[2][i]);
+        dir = mul(dir, rotation);
+        result.C[3][i] = dir.x;
+        result.C[1][i] = dir.y;
+        result.C[2][i] = dir.z;
+    }
+
 
     return result;
 }
@@ -794,6 +779,9 @@ L1_RGB Rotate(L1_RGB sh, float3x3 rotation)
 // Rotates a set of L2 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 L2 Rotate(L2 sh, float3x3 rotation)
 {
+    // The basis vectors used in DXSH are slightly different than ours,
+    // the X and Z are flipped relative to what's used above in ProjectOntoL1/L2.
+    // Hence there are several negations here to adapt the code work for us.
     const float r00 = rotation._m00;
     const float r10 = rotation._m01;
     const float r20 = -rotation._m02;
@@ -879,6 +867,9 @@ L2 Rotate(L2 sh, float3x3 rotation)
 
 L2_RGB Rotate(L2_RGB sh, float3x3 rotation)
 {
+    // The basis vectors used in DXSH are slightly different than ours,
+    // the X and Z are flipped relative to what's used above in ProjectOntoL1/L2.
+    // Hence there are several negations here to adapt the code work for us.
     const float r00 = rotation._m00;
     const float r10 = rotation._m01;
     const float r20 = -rotation._m02;

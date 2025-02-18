@@ -431,27 +431,21 @@ template<typename T, int32_t N> void ExtractSpecularDirLight(L1<T, N> shRadiance
 // Rotates a set of L1 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 template<typename T, int32_t N> L1<T, N> Rotate(L1<T, N> sh, float3x3 rotation)
 {
-    const float32_t r00 = rotation._m00;
-    const float32_t r10 = rotation._m01;
-    const float32_t r20 = -rotation._m02;
-
-    const float32_t r01 = rotation._m10;
-    const float32_t r11 = rotation._m11;
-    const float32_t r21 = -rotation._m12;
-
-    const float32_t r02 = -rotation._m20;
-    const float32_t r12 = -rotation._m21;
-    const float32_t r22 = rotation._m22;
-
     L1<T, N> result;
 
     // L0
     result.C[0] = sh.C[0];
 
     // L1
-    result.C[1] = vector<T, N>(r11 * sh.C[1] - r12 * sh.C[2] + r10 * sh.C[3]);
-    result.C[2] = vector<T, N>(-r21 * sh.C[1] + r22 * sh.C[2] - r20 * sh.C[3]);
-    result.C[3] = vector<T, N>(r01 * sh.C[1] - r02 * sh.C[2] + r00 * sh.C[3]);
+    [unroll]
+    for(uint i = 0; i < N; ++i)
+    {
+        float3 dir = float3(sh.C[3][i], sh.C[1][i], sh.C[2][i]);
+        dir = mul(dir, rotation);
+        result.C[3][i] = dir.x;
+        result.C[1][i] = dir.y;
+        result.C[2][i] = dir.z;
+    }
 
     return result;
 }
@@ -459,6 +453,9 @@ template<typename T, int32_t N> L1<T, N> Rotate(L1<T, N> sh, float3x3 rotation)
 // Rotates a set of L2 coefficients by a rotation matrix. Adapted from DirectX::XMSHRotate [3]
 template<typename T, int32_t N> L2<T, N> Rotate(L2<T, N> sh, float3x3 rotation)
 {
+    // The basis vectors used in DXSH are slightly different than ours,
+    // the X and Z are flipped relative to what's used above in ProjectOntoL1/L2.
+    // Hence there are several negations here to adapt the code work for us.
     const float32_t r00 = rotation._m00;
     const float32_t r10 = rotation._m01;
     const float32_t r20 = -rotation._m02;
