@@ -13,9 +13,9 @@
 template<typename T, int N> void TestOperatorOverloads()
 {
     {
-        SH::L1<T, N> sh = SH::L1<T, N>::Zero();
-        sh = sh + SH::L1<T, N>::Zero();
-        sh = sh - SH::L1<T, N>::Zero();
+        SH::L1_Generic<T, N> sh = SH::L1_Generic<T, N>::Zero();
+        sh = sh + SH::L1_Generic<T, N>::Zero();
+        sh = sh - SH::L1_Generic<T, N>::Zero();
         sh = sh * T(1.0);
         sh = sh * (vector<T, N>)(1.0);
         sh = sh / T(1.0);
@@ -23,9 +23,9 @@ template<typename T, int N> void TestOperatorOverloads()
     }
 
     {
-        SH::L2<T, N> sh = SH::L2<T, N>::Zero();
-        sh = sh + SH::L2<T, N>::Zero();
-        sh = sh - SH::L2<T, N>::Zero();
+        SH::L2_Generic<T, N> sh = SH::L2_Generic<T, N>::Zero();
+        sh = sh + SH::L2_Generic<T, N>::Zero();
+        sh = sh - SH::L2_Generic<T, N>::Zero();
         sh = sh * T(1.0);
         sh = sh * (vector<T, N>)(1.0);
         sh = sh / T(1.0);
@@ -36,8 +36,8 @@ template<typename T, int N> void TestOperatorOverloads()
 template<typename T, int N> void TestBasics()
 {
     {
-        SH::L1<T, N> a = SH::L1<T, N>::Zero();
-        SH::L1<T, N> b = SH::L1<T, N>::Zero();
+        SH::L1_Generic<T, N> a = SH::L1_Generic<T, N>::Zero();
+        SH::L1_Generic<T, N> b = SH::L1_Generic<T, N>::Zero();
         a = SH::Lerp(a, b, T(0.5));
         vector<T, N> v = SH::DotProduct(a, b);
         v = SH::Evaluate(a, vector<T, 3>(0.0, 1.0, 0.0));
@@ -46,12 +46,12 @@ template<typename T, int N> void TestBasics()
         a = ConvolveWithGGX(b, T(0.5));
         v = SH::CalculateIrradiance(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::Rotate(a, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1));
-        SH::L1<T, 3> rgb = SH::ToRGB(SH::L1<T, 1>::Zero());
+        SH::L1_Generic<T, 3> rgb = SH::ToRGB(SH::L1_Generic<T, 1>::Zero());
     }
 
     {
-        SH::L2<T, N> a = SH::L2<T, N>::Zero();
-        SH::L2<T, N> b = SH::L2<T, N>::Zero();
+        SH::L2_Generic<T, N> a = SH::L2_Generic<T, N>::Zero();
+        SH::L2_Generic<T, N> b = SH::L2_Generic<T, N>::Zero();
         a = SH::Lerp(a, b, T(0.5));
         vector<T, N> v = SH::DotProduct(a, b);
         v = SH::Evaluate(a, vector<T, 3>(0.0, 1.0, 0.0));
@@ -60,13 +60,13 @@ template<typename T, int N> void TestBasics()
         a = ConvolveWithGGX(b, T(0.5));
         v = SH::CalculateIrradiance(a, vector<T, 3>(0.0, 1.0, 0.0));
         a = SH::Rotate(a, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1));
-        SH::L2<T, 3> rgb = SH::ToRGB(SH::L2<T, 1>::Zero());
+        SH::L2_Generic<T, 3> rgb = SH::ToRGB(SH::L2_Generic<T, 1>::Zero());
     }
 }
 
 template<typename T, int N> void TestL1Specifics()
 {
-    SH::L1<T, N> sh = SH::ProjectOntoL1(vector<T, 3>(0.0, 1.0, 0.0), (vector<T, N>)(1.0));
+    SH::L1_Generic<T, N> sh = SH::ProjectOntoL1(vector<T, 3>(0.0, 1.0, 0.0), (vector<T, N>)(1.0));
     vector<T, 3> d = SH::OptimalLinearDirection(sh);
     vector<T, N> v = (vector<T, N>)(0.0);
     SH::ApproximateDirectionalLight(sh, d, v);
@@ -79,8 +79,8 @@ template<typename T, int N> void TestL1Specifics()
 
 template<typename T, int N> void TestL2Specifics()
 {
-    SH::L2<T, N> sh = SH::ProjectOntoL2(vector<T, 3>(0.0, 1.0, 0.0), (vector<T, N>)(1.0));
-    SH::L1<T, N> l1 = SH::L2toL1(sh);
+    SH::L2_Generic<T, N> sh = SH::ProjectOntoL2(vector<T, 3>(0.0, 1.0, 0.0), (vector<T, N>)(1.0));
+    SH::L1_Generic<T, N> l1 = SH::L2toL1(sh);
     vector<T, 3> zh = SH::ApproximateGGXAsL2ZH(T(0.5));
 }
 
