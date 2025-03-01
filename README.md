@@ -65,8 +65,12 @@ float3 diffuseLighting = SH::CalculateIrradiance(radianceSH, surfaceNormal) * (d
 
 ## Testing
 
-Currently there is just a simple compute shader (`CompileTest.hlsl`) intended for testing that all of the functions compile successfully for all valid template types. Running `CompileTest.bat` will invoke compilation. dxc.exe + dxcompiler.dll + dxil.dll can be dropped into the same directory as the batch file to use a specific version of the compiler. `CompileTest_Lite.hlsl` is also compiled with both DXC and FXC, and tests the Lite version of the header.
+There is a simple compute shader (`CompileTest.hlsl`) intended for testing that all of the functions compile successfully for all valid template types. Running `CompileTest.bat` will invoke compilation. dxc.exe + dxcompiler.dll + dxil.dll can be dropped into the same directory as the batch file to use a specific version of the compiler. `CompileTest_Lite.hlsl` is also compiled with both DXC and FXC, and tests the Lite version of the header.
+
+For more thorough visual inspection of the results, the SHTest subfolder contains a full DX12 project that renders a sphere using SH irradiance and rotation. This project tests all of the major SH types (L1, L1_RGB, L2_F16, etc.) for both the original SH.hlsli as well as the the more limited SH_Lite.hlsli. For the L1 modes, both the Geomerics as well as the ZH3Hallucinate methods for calculating irradiance are used by splitting the sphere in half along the Y axis.
+
+![image](https://github.com/user-attachments/assets/1f43a796-d66a-4862-bd21-6545c2b9b190)
 
 ## License
 
-SH.hlsli and SH_Lite.hlsli are licensed under the MIT license
+SH.hlsli, SH_Lite.hlsli, and SHTest.hlsli are licensed under the MIT license
