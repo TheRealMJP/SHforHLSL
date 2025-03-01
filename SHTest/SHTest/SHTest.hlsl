@@ -1,3 +1,13 @@
+//=================================================================================================
+//
+//  SHTest
+//  by MJP
+//  https://therealmjp.github.io/
+//
+//  All code and content licensed under the MIT license
+//
+//=================================================================================================
+
 #include <ShaderDebug.hlsl>
 #include "AppSettings.hlsl"
 #include "SharedTypes.h"

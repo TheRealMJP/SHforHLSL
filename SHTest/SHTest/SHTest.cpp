@@ -1,6 +1,6 @@
 //=================================================================================================
 //
-//  D3D12 Memory Pool Performance Test
+//  SHTest
 //  by MJP
 //  https://therealmjp.github.io/
 //
