@@ -164,7 +164,7 @@ SH_L2 SH_Subtract(SH_L2 a, SH_L2 b)
 
 SH_L2_RGB SH_Subtract(SH_L2_RGB a, SH_L2_RGB b)
 {
-    for(uint i = 0; i < SH_L1_NumCoefficients; ++i)
+    for(uint i = 0; i < SH_L2_NumCoefficients; ++i)
         a.C[i] -= b.C[i];
     return a;
 }

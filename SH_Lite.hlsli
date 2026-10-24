@@ -176,7 +176,7 @@ L2 Subtract(L2 a, L2 b)
 L2_RGB Subtract(L2_RGB a, L2_RGB b)
 {
     [unroll]
-    for(uint i = 0; i < L1_RGB::NumCoefficients; ++i)
+    for(uint i = 0; i < L2_RGB::NumCoefficients; ++i)
         a.C[i] -= b.C[i];
     return a;
 }
